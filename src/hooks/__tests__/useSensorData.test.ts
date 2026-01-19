@@ -62,7 +62,8 @@ describe('useSensorData', () => {
       expect(result.current.loading).toBe(false)
     })
 
-    expect(result.current.error).toBe(errorMessage)
+    expect(result.current.error).toBeInstanceOf(Error)
+    expect(result.current.error?.message).toBe(errorMessage)
     expect(result.current.temperatureData).toEqual([])
     expect(result.current.pressureData).toEqual([])
     expect(result.current.vibrationData).toEqual([])

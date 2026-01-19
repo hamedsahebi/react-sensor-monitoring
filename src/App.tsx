@@ -20,6 +20,7 @@ function App() {
 
   const getCurrentValue = (metric: MetricType) => {
     const data = getDataForMetric(metric)
+    
     return data.length > 0 ? data[data.length - 1].value : null
   }
 
