@@ -7,25 +7,19 @@ import { MetricChart } from './components/MetricChart'
 
 function App() {
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('temperature')
-  const { temperatureData, pressureData, vibrationData, powerData, loading } = useSensorData()
-
-  const getDataForMetric = (metric: MetricType) => {
-    switch (metric) {
-      case 'temperature': return temperatureData
-      case 'pressure': return pressureData
-      case 'vibration': return vibrationData
-      case 'power': return powerData
-    }
-  }
+  const { data, loading } = useSensorData(selectedMetric)
 
   const getCurrentValue = (metric: MetricType) => {
-    const data = getDataForMetric(metric)
-    
-    return data.length > 0 ? data[data.length - 1].value : null
+    // For the selected metric, use the loaded data
+    if (metric === selectedMetric) {
+      return data.length > 0 ? data[data.length - 1].value : null
+    }
+    // For other metrics, we don't have their data yet
+    return null
   }
 
   const currentMetric = metrics.find(m => m.id === selectedMetric)!
-  const currentData = getDataForMetric(selectedMetric)
+  const currentData = data
 
   if (loading) {
     return (
