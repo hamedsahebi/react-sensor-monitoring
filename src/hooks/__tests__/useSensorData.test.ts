@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { useSensorData, clearCache } from '../useSensorData'
-import type { MetricType } from '../../types'
+import { useSensorData } from '../useSensorData'
+import type { MetricType, SensorData } from '../../types'
 
 // Mock fetch globally
 global.fetch = vi.fn()
@@ -9,8 +9,6 @@ global.fetch = vi.fn()
 describe('useSensorData', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Clear the data cache between tests
-    clearCache()
   })
 
   afterEach(() => {
@@ -21,7 +19,14 @@ describe('useSensorData', () => {
     // Mock fetch to never resolve
     ;(global.fetch as any).mockImplementation(() => new Promise(() => {}))
 
-    const { result } = renderHook(() => useSensorData('temperature'))
+    const cache: Partial<Record<MetricType, SensorData[]>> = {}
+    const setCache = vi.fn()
+
+    const { result } = renderHook(() => useSensorData({ 
+      metric: 'temperature', 
+      cache, 
+      setCache 
+    }))
 
     expect(result.current.loading).toBe(true)
     expect(result.current.error).toBe(null)
@@ -39,7 +44,14 @@ describe('useSensorData', () => {
       json: async () => mockData
     })
 
-    const { result } = renderHook(() => useSensorData('temperature'))
+    const cache: Partial<Record<MetricType, SensorData[]>> = {}
+    const setCache = vi.fn()
+
+    const { result } = renderHook(() => useSensorData({ 
+      metric: 'temperature', 
+      cache, 
+      setCache 
+    }))
 
     expect(result.current.loading).toBe(true)
 
@@ -51,6 +63,7 @@ describe('useSensorData', () => {
     expect(result.current.data).toEqual(mockData)
     expect(global.fetch).toHaveBeenCalledWith('/data/temperature.json')
     expect(global.fetch).toHaveBeenCalledTimes(1)
+    expect(setCache).toHaveBeenCalledWith(expect.any(Function))
   })
 
   it('should fetch different metric when metric changes', async () => {
@@ -67,8 +80,13 @@ describe('useSensorData', () => {
         json: async () => pressureData
       })
 
+    let cache: Partial<Record<MetricType, SensorData[]>> = {}
+    const setCache = vi.fn((updater) => {
+      cache = typeof updater === 'function' ? updater(cache) : updater
+    })
+
     const { result, rerender } = renderHook(
-      ({ metric }: { metric: MetricType }) => useSensorData(metric),
+      ({ metric }: { metric: MetricType }) => useSensorData({ metric, cache, setCache }),
       { initialProps: { metric: 'temperature' as MetricType } }
     )
 
@@ -111,8 +129,13 @@ describe('useSensorData', () => {
         json: async () => pressureData
       })
 
+    let cache: Partial<Record<MetricType, SensorData[]>> = {}
+    const setCache = vi.fn((updater) => {
+      cache = typeof updater === 'function' ? updater(cache) : updater
+    })
+
     const { result, rerender } = renderHook(
-      ({ metric }: { metric: MetricType }) => useSensorData(metric),
+      ({ metric }: { metric: MetricType }) => useSensorData({ metric, cache, setCache }),
       { initialProps: { metric: 'temperature' as MetricType } }
     )
 
@@ -147,7 +170,14 @@ describe('useSensorData', () => {
   it('should handle fetch errors', async () => {
     ;(global.fetch as any).mockRejectedValue(new Error('Network error'))
 
-    const { result } = renderHook(() => useSensorData('temperature'))
+    const cache: Partial<Record<MetricType, SensorData[]>> = {}
+    const setCache = vi.fn()
+
+    const { result } = renderHook(() => useSensorData({ 
+      metric: 'temperature', 
+      cache, 
+      setCache 
+    }))
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false)
@@ -164,7 +194,14 @@ describe('useSensorData', () => {
       json: async () => { throw new Error('Invalid JSON') }
     })
 
-    const { result } = renderHook(() => useSensorData('pressure'))
+    const cache: Partial<Record<MetricType, SensorData[]>> = {}
+    const setCache = vi.fn()
+
+    const { result } = renderHook(() => useSensorData({ 
+      metric: 'pressure', 
+      cache, 
+      setCache 
+    }))
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false)

@@ -7,25 +7,21 @@ interface UseSensorDataReturn {
   error: Error | null
 }
 
-// Cache to store already fetched data
-const dataCache: Partial<Record<MetricType, SensorData[]>> = {}
-
-// Export for testing purposes
-export const clearCache = () => {
-  Object.keys(dataCache).forEach(key => {
-    delete dataCache[key as MetricType]
-  })
+interface UseSensorDataProps {
+  metric: MetricType
+  cache: Partial<Record<MetricType, SensorData[]>>
+  setCache: React.Dispatch<React.SetStateAction<Partial<Record<MetricType, SensorData[]>>>>
 }
 
-export const useSensorData = (metric: MetricType): UseSensorDataReturn => {
+export const useSensorData = ({ metric, cache, setCache }: UseSensorDataProps): UseSensorDataReturn => {
   const [data, setData] = useState<SensorData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   const fetchMetricData = useCallback(async (metricType: MetricType) => {
     // Check if data is already cached
-    if (dataCache[metricType]) {
-      setData(dataCache[metricType]!)
+    if (cache[metricType]) {
+      setData(cache[metricType]!)
       setLoading(false)
       return
     }
@@ -38,7 +34,10 @@ export const useSensorData = (metric: MetricType): UseSensorDataReturn => {
       const jsonData = await response.json()
       
       // Cache the fetched data
-      dataCache[metricType] = jsonData
+      setCache(prevCache => ({
+        ...prevCache,
+        [metricType]: jsonData
+      }))
       setData(jsonData)
     } catch (err) {
       console.error(`Error loading ${metricType} data:`, err)
@@ -46,7 +45,7 @@ export const useSensorData = (metric: MetricType): UseSensorDataReturn => {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [cache, setCache])
 
   useEffect(() => {
     fetchMetricData(metric)

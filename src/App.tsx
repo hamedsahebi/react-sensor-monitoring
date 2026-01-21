@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MetricType } from './types'
+import { MetricType, SensorData } from './types'
 import { metrics } from './constants/metrics'
 import { useSensorData } from './hooks/useSensorData'
 import { MetricCard } from './components/MetricCard'
@@ -7,15 +7,17 @@ import { MetricChart } from './components/MetricChart'
 
 function App() {
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('temperature')
-  const { data, loading } = useSensorData(selectedMetric)
+  const [dataCache, setDataCache] = useState<Partial<Record<MetricType, SensorData[]>>>({})
+  const { data, loading } = useSensorData({ metric: selectedMetric, cache: dataCache, setCache: setDataCache })
 
   const getCurrentValue = (metric: MetricType) => {
     // For the selected metric, use the loaded data
-    if (metric === selectedMetric) {
-      return data.length > 0 ? data[data.length - 1].value : null
+    if (metric === selectedMetric && data.length > 0) {
+      return data[data.length - 1].value
     }
-    // For other metrics, we don't have their data yet
-    return null
+    // For other metrics, check the cache
+    const cachedData = dataCache[metric]
+    return cachedData && cachedData.length > 0 ? cachedData[cachedData.length - 1].value : null
   }
 
   const currentMetric = metrics.find(m => m.id === selectedMetric)!
