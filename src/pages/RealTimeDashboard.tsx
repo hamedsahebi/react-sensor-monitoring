@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import type { MetricType, SensorData } from '../types'
 import { metrics } from '../constants/metrics'
 import { MetricCard } from '../components/MetricCard'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { MetricChart } from '../components/MetricChart'
 import { formatTime } from '../utils/formatters'
 
 const MAX_DATA_POINTS = 30 // Keep last 30 data points visible
@@ -172,46 +172,11 @@ export function RealTimeDashboard() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <ResponsiveContainer width="100%" height={500}>
-              <AreaChart data={displayData}>
-                <defs>
-                  <linearGradient id={`color-${selectedMetric}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={currentMetric.color} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={currentMetric.color} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="timestamp" 
-                  tickFormatter={formatTime}
-                  stroke="#6b7280"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis 
-                  domain={currentMetric.domain}
-                  stroke="#6b7280"
-                  style={{ fontSize: '12px' }}
-                />
-                <Tooltip 
-                  labelFormatter={(value) => formatTime(value as string)}
-                  formatter={(value?: number) => value !== undefined ? [`${value.toFixed(2)} ${currentMetric.unit}`, currentMetric.name] : ['', '']}
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    padding: '12px'
-                  }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke={currentMetric.color}
-                  strokeWidth={2}
-                  fill={`url(#color-${selectedMetric})`}
-                  animationDuration={300}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <MetricChart
+              data={displayData}
+              metric={currentMetric}
+              formatTime={formatTime}
+            />
 
             <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-3 gap-4">
               <div>
