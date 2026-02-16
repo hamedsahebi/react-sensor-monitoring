@@ -4,7 +4,7 @@ export function Layout() {
   const location = useLocation()
 
   const navItems = [
-    { path: '/', label: '📊 Historical', icon: '📊' },
+    { path: '/historical', label: '📊 Historical', icon: '📊' },
     { path: '/realtime', label: '⚡ Real-Time', icon: '⚡' }
   ]
 
@@ -14,9 +14,9 @@ export function Layout() {
       <nav className="bg-white border-b border-gray-200 shadow-sm">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <h1 className="text-2xl font-bold text-gray-800">🏭 Compressor Monitor</h1>
-            </div>
+            </Link>
 
             <div className="flex gap-2">
               {navItems.map((item) => {
